@@ -12,7 +12,10 @@
 #define HEADER_SIZE 54          // how many bytes are in theheader
 
 #define N 100000
-#define fileName "example_markers_only_5_corner.bmp"
+// #define fileName "example_markers_only_5_corner.bmp"
+// #define fileName "example_markers.bmp"
+// #define fileName "example_markers_many_5.bmp"
+#define fileName "example_markers.bmp"
 
 bool isPixelBlack(char *image, int idx)
 {
@@ -42,13 +45,14 @@ int getLineLength(char *image, int start_idx)
     return counter;
 }
 
-bool checkLBlack(char *image, int start_idx, int length)
+bool checkLBlack(char *image, int start_idx, int lengthH, int lengthV)
 {
     // mozna zalozyc, ze nie wyjdziemy poza linie obraz
 
     // checking horizontal line
     int it = start_idx;
-    for (int i = length - 1; i >= 0; --i, it += 3)
+
+    for (int i = lengthH - 1; i >= 0; --i, it += 3)
     {
         if (!isPixelBlack(image, it))
             return false;
@@ -61,11 +65,12 @@ bool checkLBlack(char *image, int start_idx, int length)
 
     // checking vertical line
     it = start_idx;
-    for (int i = (length / 2) - 1; i >= 0; --i, it -= 3 * WIDTH)
+    for (int i = lengthV - 1; i >= 0; --i, it -= 3 * WIDTH)
     {
         if (!isPixelBlack(image, it))
             return false;
     }
+
     // chekcking if the most down pixel is white
     it -= 3 * WIDTH;
     if (isPixelBlack(image, it))
@@ -88,7 +93,7 @@ bool checkLWhite(char *image, int start_idx, int length)
     }
     // checking vertical line
     it = start_idx;
-    for (int i = length / 2; i >= 0; --i, it -= WIDTH)
+    for (int i = length / 2; i >= 0; --i, it -= 3 * WIDTH)
     {
         if (isPixelBlack(image, it))
             return false;
@@ -167,36 +172,35 @@ void readBMP()
                 {
                     continue;
                 }
-                std::cout << l << std::endl;
-                int a = l;
-                if (checkLWhite(image, idx - 3 + (3 * WIDTH), a + 1))
+                int ah = l;     // a horizontal
+                int av = l / 2; // a vertical
+                if (checkLWhite(image, idx - 3 + (3 * WIDTH), ah))
                 {
                     std::cout << "white L found obove: "
                               << "Column: " << (idx / 3) % width << " Row: " << HEIGHT - ((idx / 3) / width) - 1 << std::endl;
-                    while (a != 0 && checkLBlack(image, idx, a))
+                    while (ah != 0 && checkLBlack(image, idx, ah, av))
                     {
                         std::cout << "Black L found at: "
                                   << "Column: " << (idx / 3) % width << " Row: " << HEIGHT - ((idx / 3) / width) - 1 << std::endl;
                         idx += (3 * 1) - (3 * WIDTH);
-                        a -= 1;
+                        ah -= 1;
+                        av -= 1;
                     }
 
-                    if (a != 0)
+                    if (ah != 0) // if it is not a square
                     {
-                        idx += 3 - (3 * WIDTH);
-                        a -= 1;
-                        if (checkLWhite(image, idx, a))
+                        // idx += 3 - (3 * WIDTH);
+                        // ah -= 1;
+                        if (checkLWhite(image, idx, ah))
                         {
                             std::cout << "!!white L found at: "
-                                      << "Column: " << j << " Row: " << HEIGHT - i << std::endl;
-                            // std::cout << "found! Column: " << idx % WIDTH << " Row: " << idx / HEIGHT << std::endl;
+                                      << "Column: " << (idx / 3) % width << " Row: " << HEIGHT - ((idx / 3) / width) - 1 << std::endl;
                         }
                     }
                 }
 
                 j--;
                 j += l;
-                // std::cout << std::endl;
             }
         }
     }
