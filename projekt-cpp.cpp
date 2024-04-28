@@ -56,19 +56,19 @@ bool checkLBlack(char *image, int start_idx, int length)
 
     // checking if most right pixel is white
     it += 3;
-    if (!isPixelBlack(image, it))
+    if (isPixelBlack(image, it))
         return false;
 
     // checking vertical line
     it = start_idx;
-    for (int i = length / 2; i >= 0; --i, it -= WIDTH)
+    for (int i = (length / 2) - 1; i >= 0; --i, it -= 3 * WIDTH)
     {
         if (!isPixelBlack(image, it))
             return false;
     }
     // chekcking if the most down pixel is white
-    it -= WIDTH;
-    if (!isPixelBlack(image, it))
+    it -= 3 * WIDTH;
+    if (isPixelBlack(image, it))
         return false;
 
     return true;
@@ -79,13 +79,13 @@ bool checkLWhite(char *image, int start_idx, int length)
     // mozna zalozyc, ze nie wyjdziemy poza linie obraz
 
     // checking horizontal line
+
     int it = start_idx;
     for (int i = length - 1; i >= 0; --i, it += 3)
     {
         if (isPixelBlack(image, it))
             return false;
     }
-
     // checking vertical line
     it = start_idx;
     for (int i = length / 2; i >= 0; --i, it -= WIDTH)
@@ -136,21 +136,22 @@ void readBMP()
     reader.read(image, 3 * numberOfPixels);
 
     // reading pixels from array and printing
-    // iteration from left to right, from top to bottom
-    // for (int i = height - 1; i >= 0; --i)
-    // {
-    //     std::cout << HEIGHT - i << " :";
-    //     for (int j = 0; j < width; ++j)
-    //     {
-    //         int idx = i * width + j;
-    //         idx *= 3; // because there
-    //         if (isPixelBlack(image, idx))
-    //             std::cout << "1";
-    //         else
-    //             std::cout << "0";
-    //     }
-    //     std::cout << '\n';
-    // }
+    //     iteration from left to right,
+    // from top to bottom
+    for (int i = height - 1; i >= 0; --i)
+    {
+        std::cout << HEIGHT - i - 1 << " :";
+        for (int j = 0; j < width; ++j)
+        {
+            int idx = i * width + j;
+            idx *= 3; // because there
+            if (isPixelBlack(image, idx))
+                std::cout << "1";
+            else
+                std::cout << "0";
+        }
+        std::cout << '\n';
+    }
 
     for (int i = height - 1; i >= 0; --i)
     {
@@ -170,12 +171,12 @@ void readBMP()
                 int a = l;
                 if (checkLWhite(image, idx - 3 + (3 * WIDTH), a + 1))
                 {
-                    std::cout << "white L found at: "
-                              << "Column: " << j << " Row: " << HEIGHT - i << std::endl;
+                    std::cout << "white L found obove: "
+                              << "Column: " << (idx / 3) % width << " Row: " << HEIGHT - ((idx / 3) / width) - 1 << std::endl;
                     while (a != 0 && checkLBlack(image, idx, a))
                     {
                         std::cout << "Black L found at: "
-                                  << "Column: " << j << " Row: " << HEIGHT - i << std::endl;
+                                  << "Column: " << (idx / 3) % width << " Row: " << HEIGHT - ((idx / 3) / width) - 1 << std::endl;
                         idx += (3 * 1) - (3 * WIDTH);
                         a -= 1;
                     }
