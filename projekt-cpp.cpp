@@ -15,8 +15,8 @@
 // #define fileName "example_markers_only_5_corner.bmp"
 // #define fileName "example_markers.bmp"
 // #define fileName "example_markers_many_5.bmp"
-// #define fileName "example_markers_for_tests.bmp"
-#define fileName "tttest.bmp"
+#define fileName "example_markers_for_tests.bmp"
+// #define fileName "tttest.bmp"
 
 bool isPixelBlack(char *image, int idx)
 {
@@ -80,21 +80,21 @@ bool checkLBlack(char *image, int start_idx, int lengthH, int lengthV)
     return true;
 }
 
-bool checkLWhite(char *image, int start_idx, int length)
+bool checkLWhite(char *image, int start_idx, int lengthH, int lengthV)
 {
     // mozna zalozyc, ze nie wyjdziemy poza linie obraz
 
     // checking horizontal line
 
     int it = start_idx;
-    for (int i = length + 1; i >= 0; --i, it += 3)
+    for (int i = lengthH + 1; i >= 0; --i, it += 3)
     {
         if (isPixelBlack(image, it))
             return false;
     }
     // checking vertical line
     it = start_idx;
-    for (int i = length / 2 + 1; i >= 0; --i, it -= 3 * WIDTH)
+    for (int i = lengthV + 1; i >= 0; --i, it -= 3 * WIDTH)
     {
         if (isPixelBlack(image, it))
             return false;
@@ -175,7 +175,7 @@ void readBMP()
                 }
                 int ah = l;     // a horizontal
                 int av = l / 2; // a vertical
-                if (checkLWhite(image, idx - 3 + (3 * WIDTH), ah))
+                if (checkLWhite(image, idx - 3 + (3 * WIDTH), ah, av))
                 {
                     // std::cout << "white L found obove: "
                     //           << "Column: " << (idx / 3) % width << " Row: " << HEIGHT - ((idx / 3) / width) - 1 << std::endl;
@@ -190,7 +190,9 @@ void readBMP()
 
                     if (av != 0) // if it is not a rectangle
                     {
-                        if (checkLWhite(image, idx, ah))
+                        ah -= 1;
+                        av -= 1;
+                        if (checkLWhite(image, idx, ah, av))
                         {
                             // std::cout << "!!white L found at: "
                             //           << "Column: " << (idx / 3) % width << " Row: " << HEIGHT - ((idx / 3) / width) - 1 << std::endl;
