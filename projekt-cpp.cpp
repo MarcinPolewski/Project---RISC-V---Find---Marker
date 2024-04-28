@@ -15,7 +15,8 @@
 // #define fileName "example_markers_only_5_corner.bmp"
 // #define fileName "example_markers.bmp"
 // #define fileName "example_markers_many_5.bmp"
-#define fileName "example_markers.bmp"
+// #define fileName "example_markers_for_tests.bmp"
+#define fileName "tttest.bmp"
 
 bool isPixelBlack(char *image, int idx)
 {
@@ -59,7 +60,7 @@ bool checkLBlack(char *image, int start_idx, int lengthH, int lengthV)
     }
 
     // checking if most right pixel is white
-    it += 3;
+    // it += 3;
     if (isPixelBlack(image, it))
         return false;
 
@@ -72,7 +73,7 @@ bool checkLBlack(char *image, int start_idx, int lengthH, int lengthV)
     }
 
     // chekcking if the most down pixel is white
-    it -= 3 * WIDTH;
+    // it -= 3 * WIDTH;
     if (isPixelBlack(image, it))
         return false;
 
@@ -86,14 +87,14 @@ bool checkLWhite(char *image, int start_idx, int length)
     // checking horizontal line
 
     int it = start_idx;
-    for (int i = length - 1; i >= 0; --i, it += 3)
+    for (int i = length + 1; i >= 0; --i, it += 3)
     {
         if (isPixelBlack(image, it))
             return false;
     }
     // checking vertical line
     it = start_idx;
-    for (int i = length / 2; i >= 0; --i, it -= 3 * WIDTH)
+    for (int i = length / 2 + 1; i >= 0; --i, it -= 3 * WIDTH)
     {
         if (isPixelBlack(image, it))
             return false;
@@ -176,12 +177,12 @@ void readBMP()
                 int av = l / 2; // a vertical
                 if (checkLWhite(image, idx - 3 + (3 * WIDTH), ah))
                 {
-                    std::cout << "white L found obove: "
-                              << "Column: " << (idx / 3) % width << " Row: " << HEIGHT - ((idx / 3) / width) - 1 << std::endl;
+                    // std::cout << "white L found obove: "
+                    //           << "Column: " << (idx / 3) % width << " Row: " << HEIGHT - ((idx / 3) / width) - 1 << std::endl;
                     while (ah != 0 && checkLBlack(image, idx, ah, av))
                     {
-                        std::cout << "Black L found at: "
-                                  << "Column: " << (idx / 3) % width << " Row: " << HEIGHT - ((idx / 3) / width) - 1 << std::endl;
+                        // std::cout << "Black L found at: "
+                        //           << "Column: " << (idx / 3) % width << " Row: " << HEIGHT - ((idx / 3) / width) - 1 << std::endl;
                         idx += (3 * 1) - (3 * WIDTH);
                         ah -= 1;
                         av -= 1;
@@ -189,12 +190,11 @@ void readBMP()
 
                     if (ah != 0) // if it is not a square
                     {
-                        // idx += 3 - (3 * WIDTH);
-                        // ah -= 1;
                         if (checkLWhite(image, idx, ah))
                         {
-                            std::cout << "!!white L found at: "
-                                      << "Column: " << (idx / 3) % width << " Row: " << HEIGHT - ((idx / 3) / width) - 1 << std::endl;
+                            // std::cout << "!!white L found at: "
+                            //           << "Column: " << (idx / 3) % width << " Row: " << HEIGHT - ((idx / 3) / width) - 1 << std::endl;
+                            std::cout << "marker found at row: " << height - i - 1 << " column: " << j << std::endl;
                         }
                     }
                 }
