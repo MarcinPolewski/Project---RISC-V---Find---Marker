@@ -179,7 +179,7 @@ void readBMP()
                 {
                     // std::cout << "white L found obove: "
                     //           << "Column: " << (idx / 3) % width << " Row: " << HEIGHT - ((idx / 3) / width) - 1 << std::endl;
-                    while (ah != 0 && checkLBlack(image, idx, ah, av))
+                    while (av != 0 && checkLBlack(image, idx, ah, av))
                     {
                         // std::cout << "Black L found at: "
                         //           << "Column: " << (idx / 3) % width << " Row: " << HEIGHT - ((idx / 3) / width) - 1 << std::endl;
@@ -188,7 +188,7 @@ void readBMP()
                         av -= 1;
                     }
 
-                    if (ah != 0) // if it is not a square
+                    if (av != 0) // if it is not a rectangle
                     {
                         if (checkLWhite(image, idx, ah))
                         {
