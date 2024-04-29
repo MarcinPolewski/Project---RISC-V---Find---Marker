@@ -15,8 +15,9 @@
 // #define fileName "example_markers_only_5_corner.bmp"
 // #define fileName "example_markers.bmp"
 // #define fileName "example_markers_many_5.bmp"
-#define fileName "example_markers_for_tests.bmp"
+// #define fileName "example_markers_for_tests.bmp"
 // #define fileName "tttest.bmp"
+#define fileName "source.bmp"
 
 bool isPixelBlack(char *image, int idx)
 {
@@ -170,6 +171,10 @@ void readBMP()
             {
                 int l = getLineLength(image, idx);
                 if (l == 0) // that means that is the last pixel in a row
+                {
+                    continue;
+                }
+                if (l % 2 != 0)
                 {
                     continue;
                 }
