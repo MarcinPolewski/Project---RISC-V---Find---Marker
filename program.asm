@@ -72,12 +72,12 @@ readData:
       li t1, -1
       beq a0, t1, exitWithError		# exit if error has occured
       
-      ebreak
       # write pixels to buffor
       li a7, 63			#system call for file_read
       mv a0, s1			#move file descr from s1 to a0
       la a1, buf		#address of data buffer
       li a2, PIXEL_B_COUNT	#amount to read (bytes)
+      ecall
       
       #check how much data was actually read
       beq zero,a0, fclose
@@ -91,7 +91,7 @@ processData:
       
       li t2, WIDTH
       li t3, HEIGHT
- ebreak
+ 
 rowLoop:			# iterates over rows
 columnLoop:			# iterates over columns
       mul t4, t2,t0		# idx = i*width
@@ -100,6 +100,7 @@ columnLoop:			# iterates over columns
       li t5, 3
       mul t4,t4,t5		# idx *= 3
       
+      ebreak
       la t5, buf
       add t4, t4, t5		# now t4 is pointing to pixel in row and column set in t0 and t1
       
