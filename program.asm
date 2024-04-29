@@ -1,6 +1,6 @@
 	.eqv HEADER_SIZE 	54	# in bytes
-	.eqv WIDTH		240	# in pixels(each pixels is 3 bytes)
-	.eqv HEIGHT		320
+	.eqv WIDTH		320	# in pixels(each pixels is 3 bytes)
+	.eqv HEIGHT		240
 	.eqv PIXEL_B_COUNT 	230400	# = 240*320*3 <- number of pixels reawd
 
 # ==============================================================
@@ -9,10 +9,10 @@
 
 nic:	.space 	2		#only purpose of this is to fix alignment issues while reading first pixel offest	
 hdr:	.space	HEADER_SIZE	# stores header information
-buf:	.space	4048
+buf:	.space	PIXEL_B_COUNT
 
 #fname:	.asciz	"/Users/marcinpolewski/Documents/Studia/SEM2/ARKO/projekt-RISC-V/source.bmp"	
-fname:	.asciz	"/Users/marcinpolewski/Documents/Studia/SEM2/ARKO/projekt-RISC-V/line.bmp"	
+fname:	.asciz	"/Users/marcinpolewski/Documents/Studia/SEM2/ARKO/projekt-RISC-V/blackPage.bmp"	
 erPrpt:	.asciz	"Error has occured during opening"
 opPrpt:	.asciz	"File opend successfully"
 
@@ -65,14 +65,14 @@ readData:
       mv a0, s1		# loading file descriptor
       mv a1, t0		# load offset from the base
       li a2, 0		# set the base to the beggining of the file
-      ebreak
       ecall
-      # returns selected position in a0
+      # returns 54, that means success?
       
       # check if seek was successful
       li t1, -1
       beq a0, t1, exitWithError		# exit if error has occured
       
+      ebreak
       # write pixels to buffor
       li a7, 63			#system call for file_read
       mv a0, s1			#move file descr from s1 to a0
@@ -91,7 +91,7 @@ processData:
       
       li t2, WIDTH
       li t3, HEIGHT
- 
+ ebreak
 rowLoop:			# iterates over rows
 columnLoop:			# iterates over columns
       mul t4, t2,t0		# idx = i*width
@@ -105,7 +105,6 @@ columnLoop:			# iterates over columns
       
       
       mv t5,t4			# temporary pointer, for checking next pixels
-      ebreak
 checkIfBlack:			# checks if curren pixel is black, if not, take the next one
       lbu a7, (t5)		# load first colour of the pixel lbu ???????????????
       bnez a7, endOfChecking	
