@@ -12,6 +12,7 @@ hdr:	.space	HEADER_SIZE	# stores header information
 buf:	.space	PIXEL_B_COUNT
 
 #fname:	.asciz	"/Users/marcinpolewski/Documents/Studia/SEM2/ARKO/projekt-RISC-V/source.bmp"	
+#fname:	.asciz	"/Users/marcinpolewski/Documents/Studia/SEM2/ARKO/projekt-RISC-V/line.bmp"	
 fname:	.asciz	"/Users/marcinpolewski/Documents/Studia/SEM2/ARKO/projekt-RISC-V/blackPage.bmp"	
 erPrpt:	.asciz	"Error has occured during opening"
 opPrpt:	.asciz	"File opend successfully"
@@ -86,13 +87,12 @@ processData:
       # used registered till this point: s1
       li t0, HEIGHT		# t0 <- pointer over row(starting from height-1, because .bmp-s are flipped vertically ; i
       addi t0, t0, -1
-      
-      li t1, 0		# t1 <- pointer over column ; j
-      
+
       li t2, WIDTH
       li t3, HEIGHT
- 
+ebreak
 rowLoop:			# iterates over rows
+      li t1, 0		# t1 <- pointer over column ; j
 columnLoop:			# iterates over columns
       mul t4, t2,t0		# idx = i*width
       add t4,t4, t1		# idx += j
@@ -100,7 +100,7 @@ columnLoop:			# iterates over columns
       li t5, 3
       mul t4,t4,t5		# idx *= 3
       
-      ebreak
+      
       la t5, buf
       add t4, t4, t5		# now t4 is pointing to pixel in row and column set in t0 and t1
       
@@ -108,15 +108,15 @@ columnLoop:			# iterates over columns
       mv t5,t4			# temporary pointer, for checking next pixels
 checkIfBlack:			# checks if curren pixel is black, if not, take the next one
       lbu a7, (t5)		# load first colour of the pixel lbu ???????????????
-      bnez a7, endOfChecking	
+      bnez a7, continueLoops	
       addi t5,t5,1
       
       lbu a7, (t5)
-      bnez a7, endOfChecking
+      bnez a7, continueLoops
       addi t5,t5,1
       
       lbu a7, (t5)
-      bnez a7, endOfChecking
+      bnez a7, continueLoops
 calcLengtht:			# calculate length of horizontal line starting at this pixel
       # calculate how many iterations left in this row(stored in t6)
       sub t6, t2, t1		# t6 = width - currentColumn -1 ; 
@@ -124,7 +124,7 @@ calcLengtht:			# calculate length of horizontal line starting at this pixel
       
       addi t5,t5, 1		# now t5 points to the right of idx
       
-      # a0 stores length of vertical line
+      # a0 stores length of horizontal line
       li a0, 1			# a0 stores length of vertical line(starts with 1, because we know, that at least one element is black)
       
 lengthLoop:			
@@ -144,14 +144,30 @@ lengthLoop:
       addi t6, t6, -1		# decrement number of elements left in this row
       j lengthLoop
 exitLengthLoop:
-      # currently used registers: s1-fileDescriptor, a0-length of vertical line, t0-t4 <- used for iteration
+      # currently used registers: s1-fileDescriptor, a0-length of horizontal line, t0-t4 <- used for iteration, t6 - number of pixels left in the row
        
-      
-      # used regisers at this point: s1-descriptor, t0-t4 <- iteration purposes
-      
-      
-endOfChecking:
+       # check if end of line has not been reached - if so continue with loops
+       beqz t6, continueLoops
+       
+       # check parity of horizontal line
+       li t5, 2
+       remu t6, a0, t5
+       bnez t6, continueLoops 	# continue checking if length of horizonal line is an odd number -  
+       
+       
+       # currently used registers: s1-fileDescriptor, a0-length of horizontal line, t0-t4 <- used for iteration
+  
+endOfChecking:		# finished processing - increment pointers and jump to right labels
+       addi t1,t1, -1
+       add t1,t1,a0	# adding to column pointer length of horizontal black line - 1 ; +1 will be added  in next lines
 
+continueLoops:
+       addi t1,t1,1		# increment pointer over columns
+       bltu t1, t2, columnLoop 	# jump if pointer over columns is smaller than width
+	# j++ j-- j+=length co gdy length == 0 ? <- osobno obchodzimy ten przypadek; co gdy wgl pixel nie jest czarny
+	
+	addi t0,t0,-1		# decrement pointer over rows
+	bgtz t0, rowLoop	# continue row loop if j >= 0
 
 #close the file
 fclose:
