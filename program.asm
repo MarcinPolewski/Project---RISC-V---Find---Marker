@@ -154,9 +154,92 @@ exitLengthLoop:
        remu t6, a0, t5
        bnez t6, continueLoops 	# continue checking if length of horizonal line is an odd number -  
        
+       # storing in t5 and t6 lengths of first lines - horisontal and vertical respectively 
+       mv t5, a0		# t5 stores length of currently checked horizontal line
        
-       # currently used registers: s1-fileDescriptor, a0-length of horizontal line, t0-t4 <- used for iteration
+       mv t6, a0		# t6 stores length of currently check vertical line
+       srai t6,t6, 1 		# sra - division by 2 in  U2 code - ok ?????????? theoretically value must be positive - same as in NKB
+       
+       
+       # currently used registers: s1-fileDescriptor, a0-length of horizontal line, t0-t3 <- used for iteration,t4-idx,t5-horizontalLineLength t6-verticalLineLength
+
+
+
+checkWhiteL:			# loop responsible for checking L-shape above marker is white(must be of length >= t5+2    
+      addi a1,t5,2		# a1 stores required length for horizontal line 
+      li a2, -1			# a2 = -1
+      sub a2, a2, t2		# now a2 = -1 + width 
+      
+      li a3, 3
+      mul a2,a2,a3		# now a2 = -3 + 3width
+      
+      add a2, a2, t4		# nod a2 = idx + 3(width-1) <- pointer over buffor, where 
+      mv a3, a2			# storing this pointer for vertical iteration
+      
+      	# currently used registers: s1-fileDescriptor, a0-length of horizontal line, t0-t3 <- used for iteration,t4-idx,t5-horizontalLineLength t6-verticalLineLength
+	# a3 - sotred pointer to, for next loop ; a2- currently used pointer, a1 - counter of required elngth
+
+checkWhiteLHorizontal:		# iterates and checks horizontal line
+      # co gdy na granicy jestesmy ????????
+      # co gdy dlugosc lini to 1 ??? <- wtedy reszta z dzielenia przez 2 to jeden i petla bedzie kontynuwoac - nie dojedzie do tego momemntu 
+      
+      # check if this pixel is black 
+      
+      lbu a7, (a2)		# exit the loop if pixel is not black
+      bnez a7, endOfChecking	
+      addi a2,a2,1
+      lbu a7, (a2)
+      bnez a7, endOfChecking
+      addi a2,a2,1
+      lbu a7, (a2)
+      bnez a7, endOfChecking
+      addi a2,a2,1
+      
+      # pointer over buf is already incremented at this point
+      addi a1,a1,-1			# decrementin counter of how many iteration left 
+      bnez a1, checkWhiteLHorizontal	# continue iterating if current length
+
+endOfHorizontalChecking: 
+      addi a1,t6,2		# a1 stores required length for vertical line 
+
+checkWhiteLVertical:
+      lbu a7, (a3)		# exit the loop if pixel is not black
+      bnez a7, endOfChecking	
+      addi a3,a3,1
+      lbu a7, (a3)
+      bnez a7, endOfChecking
+      addi a3,a3,1
+      lbu a7, (a3)
+      bnez a7, endOfChecking
+      
+      addi a2, a2, -2 		# a2 = start_a2 - 3*width <- pixel below this pixel 
+      
+      li a6, 3 
+      mul a6, a6, t2		# a6 = 3*width
+      
+      sub a3, a3, a6		# now a3 point to pixel below prevoius a3
+      
+      addi a1, a1,-1			# corecting amount of iteration left
+      bnez a1, checkWhiteLVertical
+      
+
+      
+      # iterater and check vertical line
+
+
+exitCheckWhiteLLoop:		
+
+checkBlackLsLoop:		# loop responsible for checking if next L-s are of right length
+
+checkBlackLLoop:
+
+exitBlackLLoop: 
+
+
+exitCheckBlackLsLoop:		# ends checking the markers
   
+ 
+ 
 endOfChecking:		# finished processing - increment pointers and jump to right labels
        addi t1,t1, -1
        add t1,t1,a0	# adding to column pointer length of horizontal black line - 1 ; +1 will be added  in next lines
