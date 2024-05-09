@@ -11,14 +11,14 @@ nic:	.space 	2		#only purpose of this is to fix alignment issues while reading f
 hdr:	.space	HEADER_SIZE	# stores header information
 buf:	.space	PIXEL_B_COUNT
 
-#fname:	.asciz	"/Users/marcinpolewski/Documents/Studia/SEM2/ARKO/projekt-RISC-V/source.bmp"	
+fname:	.asciz	"/Users/marcinpolewski/Documents/Studia/SEM2/ARKO/projekt-RISC-V/source.bmp"	
 #fname:	.asciz	"/Users/marcinpolewski/Documents/Studia/SEM2/ARKO/projekt-RISC-V/line.bmp"	
-fname:	.asciz	"/Users/marcinpolewski/Documents/Studia/SEM2/ARKO/projekt-RISC-V/blackPage.bmp"	
+#fname:	.asciz	"/Users/marcinpolewski/Documents/Studia/SEM2/ARKO/projekt-RISC-V/blackPage.bmp"	
 erPrpt:	.asciz	"Error has occured during opening"
 opPrpt:	.asciz	"File opend successfully"
 clmn:	.asciz	" column: "
 rw:	.asciz	"row: "
-endl	.asciz "\n"
+endl:	.asciz "\n"
 
 
 # ==============================================================
@@ -310,9 +310,8 @@ checkVerticalLineBlack:	# checks if vertical black line is good
       # decrement amount of pixels to check
       addi a4,a4,-1
        
-      # adjust the pointer
-      li a6, 3
-      sub a3, a3, li		# pointer -= 3
+      # adjust the pointer(because it was incremented while checking pixels	
+      addi a3, a3, -2		# pointer -= 3
       
       mul a6, a6, t2			# a6 = 3*width
       sub a3,a3, a6			# pointer -= 3*width 
@@ -338,7 +337,7 @@ checkPxV3:
 blackLIsCorrect:	# at this point horizontal and vertical black lines are of correct lengths
       # adjust idx for next iteration - pointer = pointer + 3 - 3*WIDTH
 
-      addi a2, 3
+      addi a2, a2, 3
       
       li a6, 3
       li a7, WIDTH
@@ -364,7 +363,7 @@ checkWhiteInnerL:	# checks if innner, L is white
 	# pointer now points to last found black L shape - it's only incremented when black L is found 
       
       # move pointer to next position, lengths of lines are still valid
-      addi a2, 3
+      addi a2, a2,3
       
       li a6, 3
       li a7, WIDTH
@@ -396,12 +395,12 @@ checkWhiteInnerLHorizontal:		# iterates and checks if inner L is white
       
       # pointer over buf is already incremented at this point
       addi t5,t5,-1			# decrementin counter of how many iteration left 
-      bnez t5, checkWhiteLHorizontal	# continue iterating if current length
+      bnez t5, checkWhiteInnerLHorizontal	# continue iterating if current length
 
-endOfHorizontalChecking: 
+endOfHorizontalInnerChecking: 
       mv a3, a2		# copy pointer to a3
 
-checkWhiteLVertical:		# checks if vertical horizontal line is white
+checkWhiteInnerLVertical:		# checks if vertical horizontal line is white
       lbu a7, (a3)		# exit the loop if pixel is not black
       bnez a7, endOfChecking	
       addi a3,a3,1
@@ -419,7 +418,7 @@ checkWhiteLVertical:		# checks if vertical horizontal line is white
       sub a3, a3, a6		# now a3 point to pixel below prevoius a3 ; pointer -= 3 width
       
       addi t6, t6,-1			# corecting amount of iteration left
-      bnez t6, checkWhiteLVertical
+      bnez t6, checkWhiteInnerLVertical
 	
 answerFound:				# if this point is reached answer has been found - print result
       # print result	- problem z rejestrami, w a0, a1
