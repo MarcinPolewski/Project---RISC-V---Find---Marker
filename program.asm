@@ -217,7 +217,7 @@ checkWhiteLVertical:		# checks if vertical horizontal line is white
       li a6, 3 
       mul a6, a6, t2		# a6 = 3*width
       
-      sub a3, a3, a6		# now a3 point to pixel below prevoius a3
+      sub a3, a3, a6		# now a3 point to pixel below prevoius a3 ; pointer -= 3 width
       
       addi a1, a1,-1			# corecting amount of iteration left
       bnez a1, checkWhiteLVertical
@@ -329,7 +329,16 @@ checkPxV3:
       j exitBlackLLoop
  	
 blackLIsCorrect:	# at this point horizontal and vertical black lines are of correct lengths
-      # adjust idx for next iteration
+      # adjust idx for next iteration - pointer = pointer + 3 - 3*WIDTH
+
+      addi a2, 3
+      
+      li a6, 3
+      li a7, WIDTH
+      mul a6,a6,a7	# a6 = 3*width
+      
+      sub a2, a2, a6 	# pointer = pointer - 3WIDTH  ; now pointer is adjusted
+      
 
       # decremnt amount of pixels to check - check if they are 0? t5 and t6
       addi t5,t5 -1
@@ -343,13 +352,71 @@ blackLIsCorrect:	# at this point horizontal and vertical black lines are of corr
 exitBlackLLoop: 	# program will reach this point if current error was found in current black L
 	# 1. check if at least one black L was found -  if a0= t6 that means no black line was found
 	beq a0,t6, endOfChecking
-	# 2. check white line
-	
-	# 3. if correct, print result	
 
-	# dekrementacja dlugosci 
+checkWhiteInnerL:	# checks if innner, L is white
+	# pointer now points to last found black L shape - it's only incremented when black L is found 
+      
+      # move pointer to next position, lengths of lines are still valid
+      addi a2, 3
+      
+      li a6, 3
+      li a7, WIDTH
+      mul a6,a6,a7	# a6 = 3*width
+      
+      sub a2, a2, a6 	# pointer = pointer - 3WIDTH  ; now pointer is adjusted
+      
+      mv a3,a2			# copy pointer for iterating over horzontal/vertical lines 
+      
+      
+      # currently used registers: s1-fileDescriptor, a0-length of horizontal line, t0-t3 <- used for iteration,t4-idx,t5-horizontalLineLength t6-verticalLineLength
+     # a2-copy of idx - points to last correct, black L 
+
+checkWhiteInnerLHorizontal:		# iterates and checks if inner L is white
+
+      # co gdy dlugosc lini to 1 ??? <- wtedy reszta z dzielenia przez 2 to jeden i petla bedzie kontynuwoac - nie dojedzie do tego momemntu 
+      
+      # check if this pixel is black 
+      
+      lbu a7, (a3)		# exit the loop if pixel is not black
+      bnez a7, endOfChecking	
+      addi a3,a3,1
+      lbu a7, (a3)
+      bnez a7, endOfChecking
+      addi a3,a3,1
+      lbu a7, (a3)
+      bnez a7, endOfChecking
+      addi a3,a3,1
+      
+      # pointer over buf is already incremented at this point
+      addi t5,t5,-1			# decrementin counter of how many iteration left 
+      bnez t5, checkWhiteLHorizontal	# continue iterating if current length
+
+endOfHorizontalChecking: 
+      mv a3, a2		# copy pointer to a3
+
+checkWhiteLVertical:		# checks if vertical horizontal line is white
+      lbu a7, (a3)		# exit the loop if pixel is not black
+      bnez a7, endOfChecking	
+      addi a3,a3,1
+      lbu a7, (a3)
+      bnez a7, endOfChecking
+      addi a3,a3,1
+      lbu a7, (a3)
+      bnez a7, endOfChecking
+      
+      addi a2, a2, -2 		# a2 = start_a2 - 3*width <- pixel below this pixel 
+      
+      li a6, 3 
+      mul a6, a6, t2		# a6 = 3*width
+      
+      sub a3, a3, a6		# now a3 point to pixel below prevoius a3 ; pointer -= 3 width
+      
+      addi t6, t6,-1			# corecting amount of iteration left
+      bnez t6, checkWhiteLVertical
 	
-	# moodyfikacja pointera po liscie
+answerFound:				# if this point is reached answer has been found
+      # print result
+
  
  
 endOfChecking:		# finished processing - increment pointers and jump to right labels
