@@ -16,6 +16,9 @@ buf:	.space	PIXEL_B_COUNT
 fname:	.asciz	"/Users/marcinpolewski/Documents/Studia/SEM2/ARKO/projekt-RISC-V/blackPage.bmp"	
 erPrpt:	.asciz	"Error has occured during opening"
 opPrpt:	.asciz	"File opend successfully"
+clmn:	.asciz	" column: "
+rw:	.asciz	"row: "
+endl	.asciz "\n"
 
 
 # ==============================================================
@@ -26,6 +29,10 @@ opPrpt:	.asciz	"File opend successfully"
       la a0, fname	# name of file to open
       li a1, 0		# flag - read only
       ecall
+
+      # push s1
+      addi sp, sp, -4
+      sw s1, (sp)
 
       mv s1, a0		#save the file descriptor
 
@@ -414,8 +421,51 @@ checkWhiteLVertical:		# checks if vertical horizontal line is white
       addi t6, t6,-1			# corecting amount of iteration left
       bnez t6, checkWhiteLVertical
 	
-answerFound:				# if this point is reached answer has been found
-      # print result
+answerFound:				# if this point is reached answer has been found - print result
+      # print result	- problem z rejestrami, w a0, a1
+      
+      # push a0
+      addi sp, sp, -4
+      sw a0, (sp)
+      # push a7
+      addi sp, sp, -4
+      sw a7, (sp)
+      
+      # print "row: "
+      li a7, 4 
+      la a0, rw
+      ecall 
+      
+      # print row 
+      li a7, 1
+      li a0, HEIGHT
+      sub a0, a0, t0	
+      addi a0,a0,-1	# a0 = height - i - 1 <- row idx, where 0 is a the top 
+      ecall 
+      
+
+      # print string - "column: "
+      li a7, 4 
+      la a0, clmn
+      ecall 
+      
+      # print int - column 
+      li a7, 1
+      mv a0, t1
+      ecall 
+      
+      # print '\n'
+      li a7, 4 
+      la a0, endl
+      ecall 
+      
+      # pop a7
+      lw a7, (sp)
+      addi sp, sp, 4
+      
+      # pop a0
+      lw a0, (sp)
+      addi sp, sp, 4
 
  
  
@@ -441,4 +491,10 @@ fclose:
 #move file descr from s1 to a0
 
 terminateProgram: 
-	
+      # pop s1 
+      lw s1, (sp)
+      addi sp, sp, 4
+
+      # terminating
+      li a7, 10
+      ecall
