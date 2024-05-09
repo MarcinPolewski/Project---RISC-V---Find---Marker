@@ -11,8 +11,8 @@ nic:	.space 	2		#only purpose of this is to fix alignment issues while reading f
 hdr:	.space	HEADER_SIZE	# stores header information
 buf:	.space	PIXEL_B_COUNT
 
-fname:	.asciz	"/Users/marcinpolewski/Documents/Studia/SEM2/ARKO/projekt-RISC-V/source.bmp"	
-#fname:	.asciz	"/Users/marcinpolewski/Documents/Studia/SEM2/ARKO/projekt-RISC-V/line.bmp"	
+#fname:	.asciz	"/Users/marcinpolewski/Documents/Studia/SEM2/ARKO/projekt-RISC-V/source.bmp"	
+fname:	.asciz	"/Users/marcinpolewski/Documents/Studia/SEM2/ARKO/projekt-RISC-V/example_markers_only_5_corner.bmp"	
 #fname:	.asciz	"/Users/marcinpolewski/Documents/Studia/SEM2/ARKO/projekt-RISC-V/blackPage.bmp"	
 erPrpt:	.asciz	"Error has occured during opening"
 opPrpt:	.asciz	"File opend successfully"
@@ -45,9 +45,7 @@ exitWithError:
       li a7, 4
       ecall
       
-      # terminate program
-      li a7,10
-      ecall
+      j terminateProgram
       
 readData:
 
@@ -97,7 +95,6 @@ processData:
 
       li t2, WIDTH
       li t3, HEIGHT
-ebreak
 rowLoop:			# iterates over rows
       li t1, 0		# t1 <- pointer over column ; j
 columnLoop:			# iterates over columns
@@ -190,34 +187,43 @@ checkWhiteLHorizontal:		# iterates and checks horizontal line
       # co gdy na granicy jestesmy ????????
       # co gdy dlugosc lini to 1 ??? <- wtedy reszta z dzielenia przez 2 to jeden i petla bedzie kontynuwoac - nie dojedzie do tego momemntu 
       
-      # check if this pixel is black 
+      # check if this pixel is whi 
       
       lbu a7, (a2)		# exit the loop if pixel is not black
-      bnez a7, endOfChecking	
+      bnez  a7, pixelIsWhite1	
       addi a2,a2,1
       lbu a7, (a2)
-      bnez a7, endOfChecking
+      bnez a7, pixelIsWhite1
       addi a2,a2,1
       lbu a7, (a2)
-      bnez a7, endOfChecking
+      bnez a7, pixelIsWhite1
       addi a2,a2,1
+     
+     j endOfChecking
+      
+pixelIsWhite1:	# go here, if at least on color-value is not a 0 => pixel is not black
       
       # pointer over buf is already incremented at this point
       addi a1,a1,-1			# decrementin counter of how many iteration left 
       bnez a1, checkWhiteLHorizontal	# continue iterating if current length
 
 endOfHorizontalChecking: 
-      addi a1,t6,2		# a1 stores required length for vertical line 
+      addi a1,t6,2		# a1 stores required length for vertical line
+       
 
 checkWhiteLVertical:		# checks if vertical horizontal line is white
       lbu a7, (a3)		# exit the loop if pixel is not black
-      bnez a7, endOfChecking	
+      bnez a7, pixelIsWhite2	
       addi a3,a3,1
       lbu a7, (a3)
-      bnez a7, endOfChecking
+      bnez a7, pixelIsWhite2
       addi a3,a3,1
       lbu a7, (a3)
-      bnez a7, endOfChecking
+      bnez a7, pixelIsWhite2
+      
+      j endOfChecking 		# quit if pixel is black
+      
+pixelIsWhite2:
       
       addi a2, a2, -2 		# a2 = start_a2 - 3*width <- pixel below this pixel 
       
@@ -267,6 +273,7 @@ checkHorizontalLineBlack:	# checks if horizontal line is black
       # pointer over horizontal list is alread adjusted at this point
       bnez a4, checkHorizontalLineBlack # jump if there are pixels left to check
 
+
 checkPixelAtTheEndHorizontal:	# sprawdzenie czy pixel dalej nie jest czarny
       # addi a3,a3, 3	# moving pointer to the right - potrzebne ????????????????
       
@@ -284,7 +291,7 @@ checkPx3:
 
       j exitBlackLLoop	# pixel was black
 
-      # end of checking horizontal black line in L
+checkVerticalLineBlack:      # end of checking horizontal black line in L
       
       # copy a2 pointer
       mv a3,a2
@@ -295,17 +302,17 @@ checkPx3:
       # currently used registers: s1-fileDescriptor, a0-length of horizontal line, t0-t3 <- used for iteration,t4-idx,t5-horizontalLineLength t6-verticalLineLength
       # a0- how many pixels to check horizontally ; a1 - how many vertically; a2-copy of idx a3 - pointer over line(horizontal/vertical), a4 - copy of how many pixels to check
 
-checkVerticalLineBlack:	# checks if vertical black line is good
+#ebreak
+checkVerticalLineBlackLoop:	# checks if vertical black line is good
       # check if  pixel is black
       lbu a7, (a3)		
-      bnez a7, exitBlackLLoop 
+      bnez a7, exitBlackLLoop # tu wychodzi jak nie powinien
       addi a3,a3,1
       lbu a7, (a3)
       bnez a7, exitBlackLLoop
       addi a3,a3,1
       lbu a7, (a3)
       bnez a7, exitBlackLLoop
-      addi a3,a3,1
       
       # decrement amount of pixels to check
       addi a4,a4,-1
@@ -313,11 +320,12 @@ checkVerticalLineBlack:	# checks if vertical black line is good
       # adjust the pointer(because it was incremented while checking pixels	
       addi a3, a3, -2		# pointer -= 3
       
-      mul a6, a6, t2			# a6 = 3*width
+      li a6, 3				# a6 = 3
+      mul a6, a6, t2			# a6 *= width
       sub a3,a3, a6			# pointer -= 3*width 
       
       # now pointer over vertical line is adjusted, point to pixel below previous iteration 
-      bnez a4, checkHorizontalLineBlack # jump if there are pixels left to check
+      bnez a4, checkVerticalLineBlackLoop # jump if there are pixels left to check
 checkPixelAtTheEndVertical: # check if pixel at the end is white 
 
 checkPxV1:
@@ -356,8 +364,9 @@ blackLIsCorrect:	# at this point horizontal and vertical black lines are of corr
       j checkBlackLLoop			# if everything is correct continue checking 
  	
 exitBlackLLoop: 	# program will reach this point if current error was found in current black L
+	
 	# 1. check if at least one black L was found -  if a0= t6 that means no black line was found
-	beq a0,t6, endOfChecking
+	beq a0,t5, endOfChecking
 
 checkWhiteInnerL:	# checks if innner, L is white
 	# pointer now points to last found black L shape - it's only incremented when black L is found 
