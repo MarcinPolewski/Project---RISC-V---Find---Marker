@@ -102,7 +102,7 @@ columnLoop:			# iterates over columns
       
       
       la t5, buf
-      add t4, t4, t5		# now t4 is pointing to pixel in row and column set in t0 and t1
+      add t4, t4, t5		# now t4 is pointing to pixel in row and column set in t0 and t1(basically idx)
       
       
       mv t5,t4			# temporary pointer, for checking next pixels
@@ -168,7 +168,7 @@ exitLengthLoop:
 checkWhiteL:			# loop responsible for checking L-shape above marker is white(must be of length >= t5+2    
       addi a1,t5,2		# a1 stores required length for horizontal line 
       li a2, -1			# a2 = -1
-      sub a2, a2, t2		# now a2 = -1 + width 
+      add a2, a2, t2		# now a2 = -1 + width 
       
       li a3, 3
       mul a2,a2,a3		# now a2 = -3 + 3width
@@ -202,7 +202,7 @@ checkWhiteLHorizontal:		# iterates and checks horizontal line
 endOfHorizontalChecking: 
       addi a1,t6,2		# a1 stores required length for vertical line 
 
-checkWhiteLVertical:
+checkWhiteLVertical:		# checks if vertical horizontal line is white
       lbu a7, (a3)		# exit the loop if pixel is not black
       bnez a7, endOfChecking	
       addi a3,a3,1
@@ -221,23 +221,89 @@ checkWhiteLVertical:
       
       addi a1, a1,-1			# corecting amount of iteration left
       bnez a1, checkWhiteLVertical
+
+endOfCheckingVerticalWhiteLine:	# successfully ended checking white L 
+        # currently used registers: s1-fileDescriptor, a0-length of horizontal line, t0-t3 <- used for iteration,t4-idx,t5-horizontalLineLength t6-verticalLineLength
       
 
+      # copy lenths of lines
+      mv a0, t5 	 	# how many pixels horizontaly to check 
+      mv a1, t6			# how many pixels vertically to check			- nie potrzebne !!!!!!!!!!!! można działać odrazu na t5 i t6
       
-      # iterater and check vertical line
+      # copy pointer - each iteration of checking will start from here 
+      mv a2, t4 
+      
 
-
-exitCheckWhiteLLoop:		
-
-checkBlackLsLoop:		# loop responsible for checking if next L-s are of right length
+checkBlackLsLoop:		# loop responsible for checking if next L-s are of right length (whilte av!=0 && checkBlackL())
 
 checkBlackLLoop:
 
+	# copy a2 pointer and work on it
+      mv a3,a2
+      
+      # copy how many pixels to check
+      mv a4, a0 
+      
+      # currently used registers: s1-fileDescriptor, a0-length of horizontal line, t0-t3 <- used for iteration,t4-idx,t5-horizontalLineLength t6-verticalLineLength
+      # a0- how many pixels to check horizontally ; a1 - how many vertically a3 - pointer over line, a4 - copy of how many pixels to check
+checkHorizontalLineBlack:	# checks if horizontal line is black 
+	
+      # check if  pixel is black
+      lbu a7, (a3)		
+      bnez a7, exitCheckBlackLsLoop 
+      addi a3,a3,1
+      lbu a7, (a3)
+      bnez a7, exitCheckBlackLsLoop
+      addi a3,a3,1
+      lbu a7, (a3)
+      bnez a7, exitCheckBlackLsLoop
+      addi a3,a3,1
+      
+      # decrement amount of pixels to check
+      addi a4,a4,-1
+       
+      # adjust the pointer
+      addi a3,a3, 3
+      bnez a4, checkHorizontalLineBlack # jump if there are pixels left to check
+
+checkPixelAtTheEndHorizontal:	# sprawdzenie czy pixel dalej nie jest czarny
+      # addi a3,a3, 3	# moving pointer to the right - potrzebne ????????????????
+      
+checkPx1:
+      lbu a7, (a3)
+      beqz  a7, exitCheckBlackLsLoop # wtedy przestajemy sprawdzać czarne L-ki
+      addi a3,a3,1
+checkPx2:
+      lbu a7, (a3)
+      beqz a7, exitCheckBlackLsLoop
+      addi a3,a3,1
+checkPx3:
+      lbu a7, (a3)
+      beqz a7, exitCheckBlackLsLoop
+
+      j exitCheckBlackLsLoop	# pixel whas black
+
+      # end of checking horizontal black line in L
+
+checkVerticalLineBlack:	# checks if vertical black line is good
+      
+checkPixelAtTheEndVertical: # check if pixel at the end is white 
+ 	
+ 
+ 	
 exitBlackLLoop: 
 
 
+	# dekrementacja dlugosci 
+	
+	# moodyfikacja pointera po liscie
+
 exitCheckBlackLsLoop:		# ends checking the markers
   
+      # sprwdzenie czy nie kwadrat
+      # sprawdzanie czy jaka kolwiek czarna L-ka zostala znaleziona 
+      # sprawdzenie bialego L 
+      # wypisanie znalezionego wyniku
  
  
 endOfChecking:		# finished processing - increment pointers and jump to right labels
