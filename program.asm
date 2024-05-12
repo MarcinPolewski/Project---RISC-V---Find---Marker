@@ -11,8 +11,8 @@ nic:	.space 	2		#only purpose of this is to fix alignment issues while reading f
 hdr:	.space	HEADER_SIZE	# stores header information
 buf:	.space	PIXEL_B_COUNT
 
-#fname:	.asciz	"/Users/marcinpolewski/Documents/Studia/SEM2/ARKO/projekt-RISC-V/source.bmp"	
-fname:	.asciz	"/Users/marcinpolewski/Documents/Studia/SEM2/ARKO/projekt-RISC-V/example_markers_only_5_corner.bmp"	
+fname:	.asciz	"/Users/marcinpolewski/Documents/Studia/SEM2/ARKO/projekt-RISC-V/source.bmp"	
+#fname:	.asciz	"/Users/marcinpolewski/Documents/Studia/SEM2/ARKO/projekt-RISC-V/example_markers_only_5_corner.bmp"	
 #fname:	.asciz	"/Users/marcinpolewski/Documents/Studia/SEM2/ARKO/projekt-RISC-V/blackPage.bmp"	
 erPrpt:	.asciz	"Error has occured during opening\n"
 opPrpt:	.asciz	"File opend successfully\n"
@@ -72,7 +72,7 @@ readData:
       mv a1, t0		# load offset from the base
       li a2, 0		# set the base to the beggining of the file
       ecall
-      # returns 54, that means success?
+
       
       # check if seek was successful
       li t1, -1
@@ -170,6 +170,7 @@ exitLengthLoop:
 
 
 checkWhiteL:			# loop responsible for checking L-shape above marker is white(must be of length >= t5+2    
+
       addi a1,t5,2		# a1 stores required length for horizontal line 
       li a2, -1			# a2 = -1
       add a2, a2, t2		# now a2 = -1 + width 
@@ -188,16 +189,18 @@ checkWhiteLHorizontal:		# iterates and checks horizontal line
       # co gdy dlugosc lini to 1 ??? <- wtedy reszta z dzielenia przez 2 to jeden i petla bedzie kontynuwoac - nie dojedzie do tego momemntu 
       
       # check if this pixel is whi 
-      
-      lbu a7, (a2)		# exit the loop if pixel is not black
+      addi a2,a2,3
+      lbu a7, -1(a2)		# exit the loop if pixel is not black
       bnez  a7, pixelIsWhite1	
-      addi a2,a2,1
-      lbu a7, (a2)
+     # addi a2,a2,1
+      lbu a7, -2(a2)
       bnez a7, pixelIsWhite1
-      addi a2,a2,1
-      lbu a7, (a2)
+     # addi a2,a2,1
+      lbu a7, -3(a2)
       bnez a7, pixelIsWhite1
-      addi a2,a2,1
+      #addi a2,a2,1
+      
+      
      
      j endOfChecking
       
@@ -212,20 +215,21 @@ endOfHorizontalChecking:
        
 
 checkWhiteLVertical:		# checks if vertical horizontal line is white
-      lbu a7, (a3)		# exit the loop if pixel is not black
+
+      lbu a7, +1(a3)		# exit the loop if pixel is not black
       bnez a7, pixelIsWhite2	
-      addi a3,a3,1
+      #addi a3,a3,1
       lbu a7, (a3)
       bnez a7, pixelIsWhite2
-      addi a3,a3,1
-      lbu a7, (a3)
+      #addi a3,a3,1
+      lbu a7, +2(a3)
       bnez a7, pixelIsWhite2
       
       j endOfChecking 		# quit if pixel is black
       
 pixelIsWhite2:
       
-      addi a2, a2, -2 		# a2 = start_a2 - 3*width <- pixel below this pixel 
+      #addi a3, a3, -2 		# a2 = start_a2 - 3*width <- pixel below this pixel 
       
       li a6, 3 
       mul a6, a6, t2		# a6 = 3*width
