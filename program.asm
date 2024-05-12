@@ -14,8 +14,8 @@ buf:	.space	PIXEL_B_COUNT
 #fname:	.asciz	"/Users/marcinpolewski/Documents/Studia/SEM2/ARKO/projekt-RISC-V/source.bmp"	
 fname:	.asciz	"/Users/marcinpolewski/Documents/Studia/SEM2/ARKO/projekt-RISC-V/example_markers_only_5_corner.bmp"	
 #fname:	.asciz	"/Users/marcinpolewski/Documents/Studia/SEM2/ARKO/projekt-RISC-V/blackPage.bmp"	
-erPrpt:	.asciz	"Error has occured during opening"
-opPrpt:	.asciz	"File opend successfully"
+erPrpt:	.asciz	"Error has occured during opening\n"
+opPrpt:	.asciz	"File opend successfully\n"
 clmn:	.asciz	" column: "
 rw:	.asciz	"row: "
 endl:	.asciz "\n"
@@ -242,6 +242,7 @@ endOfCheckingVerticalWhiteLine:	# successfully ended checking white L
       mv a2, t4 
       
 
+
 checkBlackLsLoop:		# loop responsible for checking if next L-s are of right length (whilte av!=0 && checkBlackL())
 
 checkBlackLLoop:
@@ -302,7 +303,7 @@ checkVerticalLineBlack:      # end of checking horizontal black line in L
       # currently used registers: s1-fileDescriptor, a0-length of horizontal line, t0-t3 <- used for iteration,t4-idx,t5-horizontalLineLength t6-verticalLineLength
       # a0- how many pixels to check horizontally ; a1 - how many vertically; a2-copy of idx a3 - pointer over line(horizontal/vertical), a4 - copy of how many pixels to check
 
-#ebreak
+
 checkVerticalLineBlackLoop:	# checks if vertical black line is good
       # check if  pixel is black
       lbu a7, (a3)		
@@ -344,7 +345,6 @@ checkPxV3:
  	
 blackLIsCorrect:	# at this point horizontal and vertical black lines are of correct lengths
       # adjust idx for next iteration - pointer = pointer + 3 - 3*WIDTH
-
       addi a2, a2, 3
       
       li a6, 3
@@ -359,7 +359,7 @@ blackLIsCorrect:	# at this point horizontal and vertical black lines are of corr
       addi t6,t6,-1
       
       
-      beqz t5, endOfChecking	# that means that we have a rectangle -
+      beqz t5, endOfChecking	# that means that we have a rectangle - abort checking
       
       j checkBlackLLoop			# if everything is correct continue checking 
  	
@@ -393,32 +393,37 @@ checkWhiteInnerLHorizontal:		# iterates and checks if inner L is white
       # check if this pixel is black 
       
       lbu a7, (a3)		# exit the loop if pixel is not black
-      bnez a7, endOfChecking	
+      bnez a7, pixelGoodHorizontalInnerL	
       addi a3,a3,1
       lbu a7, (a3)
-      bnez a7, endOfChecking
+      bnez a7, pixelGoodHorizontalInnerL
       addi a3,a3,1
       lbu a7, (a3)
-      bnez a7, endOfChecking
+      bnez a7, pixelGoodHorizontalInnerL
       addi a3,a3,1
       
+      j endOfChecking
+pixelGoodHorizontalInnerL:
       # pointer over buf is already incremented at this point
       addi t5,t5,-1			# decrementin counter of how many iteration left 
       bnez t5, checkWhiteInnerLHorizontal	# continue iterating if current length
 
 endOfHorizontalInnerChecking: 
+
       mv a3, a2		# copy pointer to a3
 
 checkWhiteInnerLVertical:		# checks if vertical horizontal line is white
       lbu a7, (a3)		# exit the loop if pixel is not black
-      bnez a7, endOfChecking	
+      bnez a7, pixelGoodVerticalInerWhiteL	
       addi a3,a3,1
       lbu a7, (a3)
-      bnez a7, endOfChecking
+      bnez a7, pixelGoodVerticalInerWhiteL
       addi a3,a3,1
       lbu a7, (a3)
-      bnez a7, endOfChecking
+      bnez a7, pixelGoodVerticalInerWhiteL
       
+      j endOfChecking
+pixelGoodVerticalInerWhiteL:
       addi a2, a2, -2 		# a2 = start_a2 - 3*width <- pixel below this pixel 
       
       li a6, 3 
@@ -428,6 +433,7 @@ checkWhiteInnerLVertical:		# checks if vertical horizontal line is white
       
       addi t6, t6,-1			# corecting amount of iteration left
       bnez t6, checkWhiteInnerLVertical
+	
 	
 answerFound:				# if this point is reached answer has been found - print result
       # print result	- problem z rejestrami, w a0, a1
@@ -494,7 +500,7 @@ fclose:
       li a7, 57
       mv a0, s1
       ecall
-#branch if no data is read
+
 #system call for file_close
 #move file descr from s1 to a0
 
