@@ -216,10 +216,10 @@ endOfHorizontalChecking:
 
 checkWhiteLVertical:		# checks if vertical horizontal line is white
 
-      lbu a7, +1(a3)		# exit the loop if pixel is not black
+      lbu a7, (a3)		# exit the loop if pixel is not black
       bnez a7, pixelIsWhite2	
       #addi a3,a3,1
-      lbu a7, (a3)
+      lbu a7, +1(a3)
       bnez a7, pixelIsWhite2
       #addi a3,a3,1
       lbu a7, +2(a3)
@@ -262,6 +262,7 @@ checkBlackLLoop:
 checkHorizontalLineBlack:	# checks if horizontal line is black 
 	
       # check if  pixel is black
+      
       lbu a7, (a3)		
       bnez a7, exitBlackLLoop 
       addi a3,a3,1
@@ -375,15 +376,6 @@ exitBlackLLoop: 	# program will reach this point if current error was found in c
 checkWhiteInnerL:	# checks if innner, L is white
 	# pointer now points to last found black L shape - it's only incremented when black L is found 
       
-      # move pointer to next position, lengths of lines are still valid
-      addi a2, a2,3
-      
-      li a6, 3
-      li a7, WIDTH
-      mul a6,a6,a7	# a6 = 3*width
-      
-      sub a2, a2, a6 	# pointer = pointer - 3WIDTH  ; now pointer is adjusted
-      
       mv a3,a2			# copy pointer for iterating over horzontal/vertical lines 
       
       
@@ -396,15 +388,16 @@ checkWhiteInnerLHorizontal:		# iterates and checks if inner L is white
       
       # check if this pixel is black 
       
-      lbu a7, (a3)		# exit the loop if pixel is not black
+      addi a3,a3, 3
+      lbu a7, -1(a3)		# exit the loop if pixel is not black
       bnez a7, pixelGoodHorizontalInnerL	
-      addi a3,a3,1
-      lbu a7, (a3)
+      #addi a3,a3,1
+      lbu a7, -2(a3)
       bnez a7, pixelGoodHorizontalInnerL
-      addi a3,a3,1
-      lbu a7, (a3)
+      #addi a3,a3,1
+      lbu a7, -3(a3)
       bnez a7, pixelGoodHorizontalInnerL
-      addi a3,a3,1
+      #addi a3,a3,1
       
       j endOfChecking
 pixelGoodHorizontalInnerL:
@@ -417,18 +410,19 @@ endOfHorizontalInnerChecking:
       mv a3, a2		# copy pointer to a3
 
 checkWhiteInnerLVertical:		# checks if vertical horizontal line is white
+      #addi a3,a3, 3
       lbu a7, (a3)		# exit the loop if pixel is not black
       bnez a7, pixelGoodVerticalInerWhiteL	
-      addi a3,a3,1
-      lbu a7, (a3)
+      #addi a3,a3,1
+      lbu a7, +1(a3)
       bnez a7, pixelGoodVerticalInerWhiteL
-      addi a3,a3,1
-      lbu a7, (a3)
+      #addi a3,a3,1
+      lbu a7, +2(a3)
       bnez a7, pixelGoodVerticalInerWhiteL
       
       j endOfChecking
 pixelGoodVerticalInerWhiteL:
-      addi a2, a2, -2 		# a2 = start_a2 - 3*width <- pixel below this pixel 
+      #addi a2, a2, -2 		# a2 = start_a2 - 3*width <- pixel below this pixel 
       
       li a6, 3 
       mul a6, a6, t2		# a6 = 3*width
